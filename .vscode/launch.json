@@ -1,0 +1,44 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Train VR Dataset",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_atm.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--data-dir", "path/to/your/csv/files",
+                "--batch-size", "64",
+                "--lr", "0.001",
+                "--epochs", "10"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Train Model",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_tcd_h36m.py",
+            "args": [
+                "--mode",
+                "train",
+                "--epochs",
+                "50",
+                "--data",
+                "all",
+                "--joints",
+                "22",
+                "--input_n",
+                "50",
+                "--output_n",
+                "5",
+                "--data_dir",
+                "./datasets",
+                "--output_dir",
+                "model_s"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}
