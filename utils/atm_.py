@@ -1,47 +1,16 @@
-import os
-import numpy as np
-import pandas as pd
-from sklearn.discriminant_analysis import StandardScaler
-import torch
-from torch.utils.data import Dataset
-from utils import ang2joint
-import pickle as pkl
-from os import walk
 
-
-class ATM(Dataset):
-
-    def __init__(self, data_dir, input_n, output_n, skip_rate, split=0, miss_rate=0.2, all_data=False, flag='train', size=None,
-                 features='M', data_path='ETTh1.csv',
+class Dataset_Custom(Dataset):
+    def __init__(self, root_path, flag='train', size=None,
+                 features='S', data_path='ETTh1.csv',
                  target='OT', scale=True, timeenc=0, freq='h', 
                  train_ratio=0.7, test_ratio=0.2, inc_quaternion = True,
                  excl_qua_out = False):
-        """
-        :param path_to_data:
-        :param actions:
-        :param input_n:
-        :param output_n:
-        :param dct_used:
-        :param split: 0 train, 1 testing, 2 validation
-        :param sample_rate:
-        """
-        self.path_to_data = os.path.join(data_dir, 'AMASS') + '/'
-        self.split = split
-        self.in_n = input_n
-        self.out_n = output_n
-        self.miss_rate = miss_rate
-        # self.sample_rate = opt.sample_rate
-        self.p3d = []
-        self.keys = []
-        self.data_idx = []
-        self.joint_used = np.arange(4, 22)  # start from 4 for 17 joints, removing the non moving ones
-        seq_len = self.in_n + self.out_n
-
-
+        # size [seq_len, label_len, pred_len]
+        # info
         if size == None:
-            self.seq_len = input_n
-            self.label_len = 0
-            self.pred_len = output_n
+            self.seq_len = 24 * 4 * 4
+            self.label_len = 24 * 4
+            self.pred_len = 24 * 4
         else:
             self.seq_len = size[0]
             self.label_len = size[1]
@@ -50,7 +19,6 @@ class ATM(Dataset):
         assert flag in ['train', 'test', 'val']
         type_map = {'train': 0, 'val': 1, 'test': 2}
         self.set_type = type_map[flag]
-
 
         self.features = features
         self.target = target
@@ -64,10 +32,10 @@ class ATM(Dataset):
         self.excl_qua_out = excl_qua_out
         # print(self.test_ratio)
 
-        self.root_path = data_dir
+        self.root_path = root_path
+        self.data_path = data_path
         self.__read_data__()
 
-    
     def __read_data__(self):
         self.scaler = StandardScaler()
         # df_raw = pd.read_csv(os.path.join(self.root_path,
@@ -160,6 +128,7 @@ class ATM(Dataset):
                 self.data.append((seq_x, seq_y, seq_x_mark, seq_y_mark))
 
 
+
     def __getitem__(self, index):
         # s_begin = index
         # s_end = s_begin + self.seq_len
@@ -171,22 +140,12 @@ class ATM(Dataset):
         # seq_x_mark = self.data_stamp[s_begin:s_end]
         # seq_y_mark = self.data_stamp[r_begin:r_end]
 
-        pose = torch.cat([torch.tensor(self.data[index][0]), torch.tensor(self.data[index][1])])
-
-        mask = np.zeros((pose.shape[0], pose.shape[1]))
-        mask[0:self.in_n, :] = 1
-        mask[self.in_n:self.in_n + self.out_n, :] = 0
-
-        data = {
-            "pose": pose,
-            "mask": mask,
-            "timepoints": np.arange(self.in_n + self.out_n)
-        }
-
-        return data
-
-        # return self.data[index][0], self.data[index][1], self.data[index][2], self.data[index][3]
+        return self.data[index][0], self.data[index][1], self.data[index][2], self.data[index][3]
 
     def __len__(self):
         # return len(self.data_x) - self.seq_len - self.pred_len + 1
         return len(self.data)
+
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)
+    

@@ -2,13 +2,32 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Train ATM Model",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_atm.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--mode", "train",
+                "--epochs", "50",
+                "--dataset", "ATM",
+                "--data", "all",
+                "--joints", "21",
+                "--input_n", "50",
+                "--output_n", "25",
+                "--data_dir", "./datasets/inhouse",
+                "--output_dir", "model_atm"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
             "name": "Python: Train VR Dataset",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main_atm.py",
             "console": "integratedTerminal",
             "args": [
-                "--data-dir", "path/to/your/csv/files",
+                "--data-dir", "./datasets/inhouse",
                 "--batch-size", "64",
                 "--lr", "0.001",
                 "--epochs", "10"
